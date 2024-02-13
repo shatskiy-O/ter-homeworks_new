@@ -1,0 +1,12 @@
+# Игнорировать файл секретных переменных Terraform
+terraform.tfvars
+
+# Игнорировать файлы состояния Terraform
+*.tfstate
+*.tfstate.*
+
+# Игнорировать файлы логов
+*.log
+
+# Игнорировать директорию .terraform
+.terraform/*
