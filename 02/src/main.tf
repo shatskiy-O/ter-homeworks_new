@@ -1,18 +1,3 @@
-resource "yandex_vpc_network" "develop" {
-  name = var.vpc_name
-}
-
-resource "yandex_vpc_subnet" "develop" {
-  name           = var.vpc_name
-  zone           = var.default_zone
-  network_id     = yandex_vpc_network.develop.id
-  v4_cidr_blocks = var.default_cidr
-}
-
-data "yandex_compute_image" "ubuntu" {
-  family = "ubuntu-2004-lts"
-}
-
 resource "yandex_compute_instance" "platform_web" {
   name        = "${var.vpc_name}-web"
   platform_id = "standard-v1"
@@ -64,12 +49,14 @@ resource "yandex_compute_instance" "platform_db" {
   }
 
   network_interface {
-    subnet_id = "e2lp3ejvarrkrr0apf38"
+    subnet_id = yandex_vpc_subnet.develop.id // Используем ссылку на подсеть, созданную Terraform
     nat       = true
   }
 
   metadata = var.metadata
 }
+
+
 
 
 
