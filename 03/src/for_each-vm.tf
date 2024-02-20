@@ -1,9 +1,5 @@
-variable "each_vm" {
-  type = map(object({
-    cpu         = number
-    ram         = number
-    disk_volume = number
-  }))
+variable "db_instances" {
+  description = "Configuration for DB instances"
   default = {
     main = {
       cpu         = 4
@@ -19,30 +15,30 @@ variable "each_vm" {
 }
 
 resource "yandex_compute_instance" "db" {
-  for_each = var.each_vm
+  for_each = var.db_instances
 
   name = each.key
+  zone = var.default_zone
 
   resources {
     cores  = each.value.cpu
-    memory = each.value.ram
+    memory = each.value.ram * 1024
   }
 
   boot_disk {
     initialize_params {
-      image_id = "fd833q45aucu0afdc2vj"
+      image_id = "fd8vmcue78k9umdv6l28" # Ubuntu image
       size     = each.value.disk_volume
     }
   }
 
   network_interface {
-    subnet_id = "e9b1r9plpg4of6fk3jnm"
-    security_group_ids = ["enpq6bm1538jc4pkqh0b"]
+    subnet_id = yandex_vpc_subnet.develop.id
+    nat       = true
   }
 
-metadata = {
-  ssh-keys = "ubuntu:${file("/Users/shatskie/.ssh/netologia1.pub")}"
+  metadata = {
+    ssh-keys = "ubuntu:${file(var.ssh_public_key)}"
+  }
 }
 
-  depends_on = [yandex_compute_instance.web]
-}

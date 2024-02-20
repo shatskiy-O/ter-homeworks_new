@@ -1,41 +1,41 @@
-resource "yandex_compute_disk" "disk" {
+resource "yandex_compute_disk" "extra" {
   count = 3
-  name  = "extra-disk-${count.index}"
-  type  = "network-hdd"
-  size  = 1
-  zone  = "ru-central1-a"
+
+  name = "extra-disk-${count.index}"
+  type = "network-hdd"
+  size = 10
+  zone = var.default_zone
 }
 
 resource "yandex_compute_instance" "storage" {
   name = "storage"
-  zone = "ru-central1-a"
+  zone = var.default_zone
 
   resources {
     cores  = 2
-    memory = 2
+    memory = 2 * 1024
   }
 
   boot_disk {
     initialize_params {
-      image_id = "fd82sqrj4uk9j7vlki3q" 
+      image_id = "fd8vmcue78k9umdv6l28" # Ubuntu image
+      size     = 10
     }
   }
 
   network_interface {
-    subnet_id = "e9b1r9plpg4of6fk3jnm" 
-    security_group_ids = ["enpq6bm1538jc4pkqh0b"]
+    subnet_id = yandex_vpc_subnet.develop.id
+    nat       = true
   }
 
   metadata = {
-    ssh-keys = "ubuntu:${file("/Users/shatskie/.ssh/netologia1.pub")}"
+    ssh-keys = "ubuntu:${file(var.ssh_public_key)}"
   }
 
-  dynamic "secondary_disk" {
-    for_each = yandex_compute_disk.disk.*.id
-    content {
-      auto_delete = true
-      disk_id = secondary_disk.value
-    }
+  secondary_disk {
+    for_each = toset(yandex_compute_disk.extra.*.id)
+    disk_id  = each.value
   }
 }
+
 
